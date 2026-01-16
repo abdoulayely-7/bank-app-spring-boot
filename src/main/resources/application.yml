@@ -1,0 +1,10 @@
+
+spring:
+  application:
+    name: Bank-app
+  messages:
+    basename: messages_fr
+    encoding: UTF-8
+    fallback-to-system-locale: false
+server:
+  port: 8081
