@@ -2,9 +2,20 @@
 spring:
   application:
     name: Bank-app
+  datasource:
+    url: jdbc:postgresql://localhost:5432/bankdb
+    username: postgres
+    password: passer
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
   messages:
     basename: messages_fr
     encoding: UTF-8
     fallback-to-system-locale: false
 server:
-  port: 8081
+  port: 8080
