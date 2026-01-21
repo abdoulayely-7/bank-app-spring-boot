@@ -1,9 +1,8 @@
 package org.example.bankapp.service;
 
-import java.math.BigDecimal;
-
-import org.example.bankapp.entity.Account;
+import org.example.bankapp.dto.AccountRequestDto;
+import org.example.bankapp.dto.AccountResponseDto;
 
 public interface AccountServiceInterface {
-    Account createAccount(BigDecimal balance);
+    AccountResponseDto createAccount(AccountRequestDto dto);
 }

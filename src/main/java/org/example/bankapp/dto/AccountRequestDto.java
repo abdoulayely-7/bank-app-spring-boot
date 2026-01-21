@@ -1,9 +1,9 @@
 package org.example.bankapp.dto;
 
+import java.math.BigDecimal;
+
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.PositiveOrZero;
-
-import java.math.BigDecimal;
 
 public class AccountRequestDto {
 

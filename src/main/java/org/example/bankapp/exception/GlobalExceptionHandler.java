@@ -1,5 +1,7 @@
 package org.example.bankapp.exception;
 
+import org.example.bankapp.api.ApiResponse;
+import org.example.bankapp.dto.ApiErrorResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.http.HttpStatus;
@@ -9,6 +11,8 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
+import jakarta.servlet.http.HttpServletRequest;
+
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
@@ -16,32 +20,52 @@ import java.util.Map;
 @ControllerAdvice
 public class GlobalExceptionHandler {
 
-    @Autowired
-    private MessageSource messageSource;
+        @Autowired
+        private MessageSource messageSource;
 
+        @ExceptionHandler(MethodArgumentNotValidException.class)
+        public ResponseEntity<ApiErrorResponse> handleValidationException(
+                        MethodArgumentNotValidException ex, HttpServletRequest request) {
 
-    @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<Map<String,String>> handleValidationException(
-            MethodArgumentNotValidException ex) {
+                Map<String, String> errors = new HashMap<>();
+                ex.getBindingResult().getFieldErrors().forEach(error -> {
+                        errors.put(error.getField(), error.getDefaultMessage());
+                });
 
-        Map<String,String> errors = new HashMap<>();
-        ex.getBindingResult().getFieldErrors().forEach(error -> {
-            String fieldName = error.getField();
-            String message = error.getDefaultMessage();
-            errors.put(fieldName, message);
-        });
+                ApiErrorResponse errorsResponse = new ApiErrorResponse(
+                                HttpStatus.BAD_REQUEST.value(),
+                                messageSource.getMessage("VALIDATION_FAILED", null, Locale.getDefault()),
+                                // errors,
+                                request.getRequestURI());
 
-        return ResponseEntity
-                .status(HttpStatus.BAD_REQUEST)
-                .body(errors);
-    }
+                return ResponseEntity
+                                .status(HttpStatus.BAD_REQUEST)
+                                .body(errorsResponse);
+        }
 
-    @ExceptionHandler(HttpMessageNotReadableException.class)
-    public ResponseEntity<Map<String, String>> handleInvalidJson(HttpMessageNotReadableException ex) {
-        Map<String, String> error = new HashMap<>();
-        String msg = messageSource.getMessage("INVALID_JSON", null, Locale.getDefault());
-        error.put("error", msg);
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
-    }
+        @ExceptionHandler(BusinessException.class)
+        public ResponseEntity<ApiResponse<Void>> handleBusinessException(BusinessException ex,
+                        HttpServletRequest request) {
+                ApiErrorResponse error = new ApiErrorResponse(
+                                HttpStatus.BAD_REQUEST.value(),
+                                ex.getMessage(),
+                                request.getRequestURI());
+                return ResponseEntity
+                                .status(HttpStatus.BAD_REQUEST)
+                                .body(ApiResponse.erroor(error));
+        }
+
+        @ExceptionHandler(HttpMessageNotReadableException.class)
+        public ResponseEntity<ApiResponse<Void>> handleInvalidJson(HttpMessageNotReadableException ex,
+                        HttpServletRequest request) {
+                String msg = messageSource.getMessage("INVALID_JSON", null, Locale.getDefault());
+                ApiErrorResponse errorsResponse = new ApiErrorResponse(
+                                HttpStatus.BAD_REQUEST.value(),
+                                msg,
+                                request.getRequestURI());
+                return ResponseEntity
+                                .status(HttpStatus.BAD_REQUEST)
+                                .body(ApiResponse.erroor(errorsResponse));
+        }
 
 }
